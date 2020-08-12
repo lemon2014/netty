@@ -1,5 +1,9 @@
 package org.lemon.netty.nio.buffer;
 
+import io.netty.buffer.ByteBuf;
+
+import java.nio.ByteBuffer;
+
 /**
  * 字节顺序，byteBuffer类有所不同，默认字节顺序总是byteOrder.BIG_ENDIAN, 无论系统固有的字节顺序是什么
  *
@@ -11,4 +15,8 @@ package org.lemon.netty.nio.buffer;
  *
  */
 public class ByteOrderDemo {
+    public static void main(String[] args) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(100);
+        System.out.println(byteBuffer.isDirect());
+    }
 }
