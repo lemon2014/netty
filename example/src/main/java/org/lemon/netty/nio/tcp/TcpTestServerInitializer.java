@@ -9,6 +9,12 @@ public class TcpTestServerInitializer extends ChannelInitializer<SocketChannel> 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         ChannelPipeline channelPipeline = ch.pipeline();
-        channelPipeline.addLast(new TcpTestServerHandler());
+//        channelPipeline.addLast(new TcpTestServerHandler());
+
+        channelPipeline.addLast(new MyMessageDecoder());
+        channelPipeline.addLast(new MyMessageEncoder());
+        channelPipeline.addLast(new MyServerHandler());
+
+
     }
 }
