@@ -132,6 +132,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         setChannelOptions(channel, newOptionsArray(), logger);
         setAttributes(channel, attrs0().entrySet().toArray(EMPTY_ATTRIBUTE_ARRAY));
 
+        //创建channel的时候自动创建了pipeline
         ChannelPipeline p = channel.pipeline();
 
         final EventLoopGroup currentChildGroup = childGroup;
@@ -142,6 +143,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         }
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = childAttrs.entrySet().toArray(EMPTY_ATTRIBUTE_ARRAY);
 
+        //上面都是设置option和attr属性
+
+        // 添加自定义的bossGroup的handler，在最后添加serverBootstrapAcceptor
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) {
@@ -151,6 +155,15 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);
                 }
 
+                /**
+                 * 这里执行只是添加了处理器，还没有真正执行处理器，
+                 * 处理器的作用就是将channel通道给workerGroup，也就是
+                 * reactor模式中的acceptor对象（这里的acceptor就是bossgroup将连接传递给workerGroup执行的地方）
+                 *
+                 * 真正有连接请求过来的时候，这是最后一个处理器，就是将连接递交给workerGroup线程组处理
+                 *
+                 * fixme 至于这里为什么要使用线程去添加handler，还不清楚？？？？
+                 */
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {

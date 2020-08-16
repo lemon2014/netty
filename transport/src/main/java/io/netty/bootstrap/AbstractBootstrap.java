@@ -307,7 +307,12 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            //这里根据前面配置的channel的class，然后根据反射生成NioServerSocketChannel
             channel = channelFactory.newChannel();
+
+            /**
+             * 设置option和attr、添加bossGroup的handler，最后添加serverBootstrapAcceptor（初始化workGroup的属性）
+             */
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -320,6 +325,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
+        //bossGroup注册通道
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
