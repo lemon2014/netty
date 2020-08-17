@@ -464,6 +464,36 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             AbstractChannel.this.eventLoop = eventLoop;
 
+            /**
+             * 这里需要重点理解的
+             * 1、一个EventLoopGroup当中会包含一个或者多个EventLoop
+             * 2、一个EventLoop在它的整个生命周期中只会与唯一一个Thread进行绑定
+             * 3、所有由EventLoop所处理的各种I/O事件都将由它所关联的那个Thread上进行处理
+             * 4、一个channel在整个生命周期中只会注册一个EventLoop上
+             * 5、一个EventLoop在运行过程中，会被分配给一个或者多个Channel
+             *
+             * eventLoop.inEventLoop就是判断当前线程和eventLoop绑定的线程是否是同一个线程
+             * 如果是就直接执行，否则创建一个task给eventLoop的绑定线程执行，通过这种方式，
+             * 规避了多线程并发执行问题
+             *
+             *
+             * 重要结论：在netty中，channel的实现一定是线程安全的，基于此，我们可以存储一个channel的引用，并且在需要向
+             * 远程端点发送数据时，通过这个引用来调用channel相应的方法，即便当时有很多线程都在使用它也不会出现多线程问题；
+             * 而且，消息一定会按照顺序发送出去；
+             *
+             * 我们在业务开发中，不要将长时间执行的耗时任务放到EventLoop的执行队列中，因为它将会一直阻塞该线程对应的所有channel上的其他执行任务，
+             * 如果我们需要进行阻塞调用或者耗时的操作（实际开发中很常见），那么我们就需要使用一个专门的EventExecutor（业务线程池）
+             *
+             * 通过会有两种实现方式
+             * 1、在channelHandler的回调方法中，使用自己定义的业务线程池，这样就可以实现异步调用。
+             * 2、借助于netty提供的向channelPipeLine添加channelHandler时调用的addLast方法传递EventExecutor
+             *
+             * 说明：默认情况下（调用addList（handler）），channelHandler中的回调方法都是由I/O线程所执行，如果调用了channelPipeline addLast（EventExecutorGroup  group, ChannelHandler
+             * ... handlers)方法，那么ChannelHandler中的回调方法就是由参数中的group线程组来执行的；
+             *
+             * fixme: 如果是异步执行，需要将结果传递给下一个handler要如何实现？？？ 现在的情况是异步执行后，直接到下一个handler中了，异步执行的结果可能还没执行完？？？？
+             *
+             */
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
