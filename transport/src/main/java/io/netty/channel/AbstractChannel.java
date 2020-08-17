@@ -493,6 +493,21 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
              *
              * fixme: 如果是异步执行，需要将结果传递给下一个handler要如何实现？？？ 现在的情况是异步执行后，直接到下一个handler中了，异步执行的结果可能还没执行完？？？？
              *
+             *
+             *
+             * JDK提供的Future只能通过手工的方式检查执行结果，而这个操作是会阻塞的；Netty则对ChannelFutrue进行了增强，通过channelFutureListener以回调的方式来获取
+             * 执行结果；去除了手工检查阻塞的操作；值得注意的是，ChannelFutureListener的operationComplete方法是由I/O线程执行的，因此要注意的是在这里不要进行耗时的
+             * 操作，否则需要通过另外的线程或者线程池来执行；
+             *
+             * future自己又是如何知道结果完成的？？？
+             *
+             *
+             *
+             *
+             *
+             *
+             *
+             *
              */
             if (eventLoop.inEventLoop()) {
                 register0(promise);
