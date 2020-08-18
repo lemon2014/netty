@@ -6,7 +6,7 @@ import java.nio.channels.FileChannel;
 
 public class FileChannelDemo1 {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         String str = "测试文件的写入";
         FileOutputStream fileOutputStream = new FileOutputStream("file01.txt");
         FileChannel fileChannel = fileOutputStream.getChannel();

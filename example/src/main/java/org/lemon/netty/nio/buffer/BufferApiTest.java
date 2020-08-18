@@ -13,7 +13,7 @@ public class BufferApiTest {
          */
         ByteBuffer byteBuffer = ByteBuffer.allocate(100);
         System.out.println(byteBuffer.arrayOffset()); //返回缓存区数据在数组中存储的开始位置的偏移量, 通过上面的方式的创建的缓冲区，offset始终都是返回0
-        byteBuffer.put((byte)'a');
+        byteBuffer.put((byte) 'a');
         byteBuffer.flip();
         System.out.println(byteBuffer.arrayOffset());
 
@@ -30,7 +30,6 @@ public class BufferApiTest {
         buffer.position(3).limit(5);
         CharBuffer sliceBuffer = buffer.slice();
         System.out.println(sliceBuffer.arrayOffset());
-
 
 
         //复制操作

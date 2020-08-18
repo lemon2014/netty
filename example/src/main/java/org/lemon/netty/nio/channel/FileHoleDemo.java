@@ -12,8 +12,6 @@ import java.nio.charset.Charset;
  * 文件空洞, FileChannel不像缓冲区Buffer，初始以后就不能改变大小了，fileChannel能扩容； 例如空白文件写入'test'字符，position的值为4，
  * 表示后续写文件的时候，从索引值为4的位置上面开始写值，但是可以通过channel.position设置position的值，现在把position的值设置成100，然后
  * 写文件的时候就会从100开始写，从4到100之间就会形成空洞，是无法写内容的，
- *
- *
  */
 public class FileHoleDemo {
 

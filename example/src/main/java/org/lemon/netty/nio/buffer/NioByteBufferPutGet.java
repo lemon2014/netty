@@ -4,8 +4,6 @@ import java.nio.ByteBuffer;
 
 /**
  * buffer需要理解的三个点
- *
- *
  */
 public class NioByteBufferPutGet {
 

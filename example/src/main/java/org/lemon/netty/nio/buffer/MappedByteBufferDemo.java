@@ -6,7 +6,7 @@ import java.nio.channels.FileChannel;
 
 public class MappedByteBufferDemo {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
         RandomAccessFile randomAccessFile = new RandomAccessFile("file01.txt", "rw");
         //获取对应的通道
         FileChannel channel = randomAccessFile.getChannel();

@@ -7,7 +7,7 @@ import java.nio.channels.FileChannel;
 
 public class FileChannelDemo4 {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) throws Exception {
 
         FileInputStream fileInputStream = new FileInputStream("file01.txt");
         FileChannel fileChannel01 = fileInputStream.getChannel();
@@ -31,7 +31,7 @@ public class FileChannelDemo4 {
             byteBuffer.clear(); //清空buffer
             int read = fileChannel01.read(byteBuffer);
             System.out.println("read =" + read);
-            if(read == -1) { //表示读完
+            if (read == -1) { //表示读完
                 break;
             }
             //将buffer 中的数据写入到 fileChannel02 -- 2.txt
