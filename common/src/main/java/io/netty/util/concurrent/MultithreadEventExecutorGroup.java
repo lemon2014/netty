@@ -70,13 +70,6 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
                                             EventExecutorChooserFactory chooserFactory, Object... args) {
 
 
-        /**
-         * 完成相关初始化操作
-         *
-         * 1、创建多个NioEventLoop对象
-         * 2、将多个NioEventLoop传递给EventExecutorChooser对象，用于决定使用哪个事件循环
-         *
-         */
         if (nThreads <= 0) {
             throw new IllegalArgumentException(String.format("nThreads: %d (expected: > 0)", nThreads));
         }
@@ -117,8 +110,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        // 设置事件循环选择器
         chooser = chooserFactory.newChooser(children);
 
+        // 设置终止监听器
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override
             public void operationComplete(Future<Object> future) throws Exception {
@@ -132,6 +127,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             e.terminationFuture().addListener(terminationListener);
         }
 
+        // fixme 设置不可变的集合，不知道做什么用？？？？？
         Set<EventExecutor> childrenSet = new LinkedHashSet<EventExecutor>(children.length);
         Collections.addAll(childrenSet, children);
         readonlyChildren = Collections.unmodifiableSet(childrenSet);

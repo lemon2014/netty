@@ -11,13 +11,17 @@ public class TcpTestServer {
 
     public static void main(String[] args) throws Exception {
 
+        //创建了两个线程组
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
+
+            //下面的两行都是成员变量赋值（初始化）
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
                     .childHandler(new TcpTestServerInitializer());
 
+            //真正的初始化逻辑
             ChannelFuture channelFuture = serverBootstrap.bind(8899).sync();
             channelFuture.channel().closeFuture().sync();
         } finally {

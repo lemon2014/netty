@@ -16,6 +16,7 @@ public class TcpTestClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
      * 循环推送100次消息，服务器端肯定会进行拆包粘包的，channelRead0每次读取到的内容都不是完整的，
      * 所以需要控制拆包和粘包的行为; 默认一个数据包的大小是多少??
      *
+     *
      * @param ctx
      * @throws Exception
      */
@@ -29,6 +30,7 @@ public class TcpTestClientHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     /**
+     *
      * 服务器返回了多次数据包，为什么这里只有一次打印？？？
      */
     @Override

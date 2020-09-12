@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * life-cycle and allows shutting them down in a global fashion.
  *
  */
-public interface EventExecutorGroup extends ScheduledExecutorService, Iterable<EventExecutor> {
+public interface    EventExecutorGroup extends ScheduledExecutorService, Iterable<EventExecutor> {
 
     /**
      * Returns {@code true} if and only if all {@link EventExecutor}s managed by this {@link EventExecutorGroup}
