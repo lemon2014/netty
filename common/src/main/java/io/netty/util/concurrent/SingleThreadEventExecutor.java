@@ -823,9 +823,18 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         execute(ObjectUtil.checkNotNull(task, "task"), false);
     }
 
+    /**
+     *
+     * netty启动的时候，注册流程，添加task到队列中，怎么将netty的代码流程走通？？？？
+     */
     private void execute(Runnable task, boolean immediate) {
         boolean inEventLoop = inEventLoop();
+
+        // 将注册任务添加到队列中
         addTask(task);
+
+        // 当前的线程是主线程，进入下面的判断流程
+        String currentThread = Thread.currentThread().getName();
         if (!inEventLoop) {
             startThread();
             if (isShutdown()) {
@@ -944,6 +953,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
                 boolean success = false;
                 try {
+
                     doStartThread();
                     success = true;
                 } finally {
@@ -975,10 +985,14 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void doStartThread() {
         assert thread == null;
+
+        String currentThread = Thread.currentThread().getName(); //main
+
         executor.execute(new Runnable() {
             @Override
             public void run() {
                 thread = Thread.currentThread();
+                String currentThread = thread.getName(); //nioEventLoop-Group
                 if (interrupted) {
                     thread.interrupt();
                 }

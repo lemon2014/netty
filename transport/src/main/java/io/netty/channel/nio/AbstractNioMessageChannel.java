@@ -72,6 +72,11 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        /**
+                         * accept一个连接，然后封装一个nioSocketChannel到ReadBuf中
+                         *
+                         * 调用的是原生的ServerSocketChannel.accept()，添加到readBuf中
+                         */
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;

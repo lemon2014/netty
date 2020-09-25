@@ -143,10 +143,14 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         }
         final Entry<AttributeKey<?>, Object>[] currentChildAttrs = childAttrs.entrySet().toArray(EMPTY_ATTRIBUTE_ARRAY);
 
-        //上面都是设置option和attr属性, 两者的区别是什么？？？
+        // 上面都是设置option和attr属性, 两者的区别是什么？？？
 
         // 添加自定义的bossGroup的handler，在最后添加serverBootstrapAcceptor
+
+        // 这里暂时只是添加了一个初始化过滤器，还没有执行，需要找到什么地方调用的？？？
         p.addLast(new ChannelInitializer<Channel>() {
+
+            // 通道注册成功后, 会调用该方法
             @Override
             public void initChannel(final Channel ch) {
                 final ChannelPipeline pipeline = ch.pipeline();
@@ -155,7 +159,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                     pipeline.addLast(handler);
                 }
 
-                // 将accept交给 nioEventLoop来执行
+
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {

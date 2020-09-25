@@ -69,6 +69,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
     private final IntSupplier selectNowSupplier = new IntSupplier() {
         @Override
         public int get() throws Exception {
+            /**
+             * 非阻塞的select操作，如果没有准备就绪的channel，就直接返回0
+             */
             return selectNow();
         }
     };
@@ -444,7 +447,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             try {
                 int strategy;
                 try {
+                    /**
+                     * taskQueue如果不为空，则返回已经准备好的channel个数，否则返回-1
+                     */
                     strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
+
                     switch (strategy) {
                     case SelectStrategy.CONTINUE:
                         continue;
@@ -479,11 +486,28 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     continue;
                 }
 
+                /**
+                 * 这下面的还不清楚是什么逻辑，为什么要这样处理？？？
+                 *
+                 *
+                 */
                 selectCnt++;
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
                 final int ioRatio = this.ioRatio;
                 boolean ranTasks;
+
+                /**
+                 * ioRatio 为执行io操作比例,
+                 * 如果ioRatio为100，则表示所有的时间用来执行IO操作，也就是select操作，io操作执行完了再执行task
+                 *
+                 * 如果ioRatio不为100，并且已经有channel准备就绪，就先执行io操作，然后执行task，但是这里执行task
+                 * 是有时间限制的，根据io操作的耗时以及ioRatio的比例来计算task执行的时间，时间到了task就停止执行
+                 *
+                 * 如果ioRatio不为100，并且没有channel准备就绪，直接执行task，并且执行最小数量的task（小于等于64个）
+                 *
+                 */
+
                 if (ioRatio == 100) {
                     try {
                         if (strategy > 0) {
@@ -512,6 +536,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                                 selectCnt - 1, selector);
                     }
                     selectCnt = 0;
+
+                    // 处理nio空轮询的bug
                 } else if (unexpectedSelectorWakeup(selectCnt)) { // Unexpected wakeup (unusual case)
                     selectCnt = 0;
                 }

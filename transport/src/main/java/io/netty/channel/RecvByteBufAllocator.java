@@ -25,11 +25,17 @@ import static io.netty.util.internal.ObjectUtil.checkNotNull;
 /**
  * Allocates a new receive buffer whose capacity is probably large enough to read all inbound data and small enough
  * not to waste its space.
+ *
+ * 接收byteBuf分配器， 分配一个新的接收buffer，可以有能力读取所有的inbound数据，并且足够小不会浪费空间
  */
 public interface RecvByteBufAllocator {
     /**
      * Creates a new handle.  The handle provides the actual operations and keeps the internal information which is
      * required for predicting an optimal buffer capacity.
+     *
+     * 创建一个新的句柄，这个句柄提供实际的操作，并且保存预测最佳缓冲器容量所需的内部信息
+     *
+     *
      */
     Handle newHandle();
 

@@ -359,6 +359,12 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     static void invokeChannelRead(final AbstractChannelHandlerContext next, Object msg) {
+
+        /**
+         * 看msg是否为引用计数类型接口的实现，
+         *
+         * ？？？？？？？？？？
+         */
         final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
@@ -374,14 +380,14 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
     }
 
     private void invokeChannelRead(Object msg) {
-        if (invokeHandler()) {
+        if (invokeHandler()) {//是否已经被添加到管道？？？？？？？？？？
             try {
                 ((ChannelInboundHandler) handler()).channelRead(this, msg);
             } catch (Throwable t) {
                 invokeExceptionCaught(t);
             }
         } else {
-            fireChannelRead(msg);
+            fireChannelRead(msg);//将消息传递给下一个可以处理该消息的通道上下文
         }
     }
 

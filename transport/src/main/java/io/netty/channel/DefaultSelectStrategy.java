@@ -27,6 +27,11 @@ final class DefaultSelectStrategy implements SelectStrategy {
 
     @Override
     public int calculateStrategy(IntSupplier selectSupplier, boolean hasTasks) throws Exception {
+
+        /**
+         *
+         * taskQueue如果不为空，则返回已经准备好的channel个数，否则返回-1
+         */
         return hasTasks ? selectSupplier.get() : SelectStrategy.SELECT;
     }
 }

@@ -50,6 +50,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private static final String HEAD_NAME = generateName0(HeadContext.class);
     private static final String TAIL_NAME = generateName0(TailContext.class);
 
+    //为当前线程存放类型和名字映射，避免重复？？？？
     private static final FastThreadLocal<Map<Class<?>, String>> nameCaches =
             new FastThreadLocal<Map<Class<?>, String>>() {
         @Override
@@ -58,20 +59,22 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     };
 
+    // 消息大小估算器更新？？？？？
     private static final AtomicReferenceFieldUpdater<DefaultChannelPipeline, MessageSizeEstimator.Handle> ESTIMATOR =
             AtomicReferenceFieldUpdater.newUpdater(
                     DefaultChannelPipeline.class, MessageSizeEstimator.Handle.class, "estimatorHandle");
-    final AbstractChannelHandlerContext head;
-    final AbstractChannelHandlerContext tail;
 
-    private final Channel channel;
-    private final ChannelFuture succeededFuture;
-    private final VoidChannelPromise voidPromise;
-    private final boolean touch = ResourceLeakDetector.isEnabled();
+    final AbstractChannelHandlerContext head;//头处理器上下文
+    final AbstractChannelHandlerContext tail;//尾处理器上下文
 
-    private Map<EventExecutorGroup, EventExecutor> childExecutors;
-    private volatile MessageSizeEstimator.Handle estimatorHandle;
-    private boolean firstRegistration = true;
+    private final Channel channel;//通道
+    private final ChannelFuture succeededFuture;//通道异步结果
+    private final VoidChannelPromise voidPromise;//任意类型的异步结果
+    private final boolean touch = ResourceLeakDetector.isEnabled();//是否要资源泄露检测
+
+    private Map<EventExecutorGroup, EventExecutor> childExecutors;//事件循环组合对应的执行器
+    private volatile MessageSizeEstimator.Handle estimatorHandle;//消息大小评估处理器
+    private boolean firstRegistration = true;//第一次注册
 
     /**
      * This is the head of a linked list that is processed by {@link #callHandlerAddedForAllHandlers()} and so process
@@ -152,33 +155,42 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return addFirst(null, name, handler);
     }
 
+
+    /**
+     * 当执行比较耗时的业务处理时，可以使用该方法，传入一个线程处理组，异步执行
+     *
+     *
+     */
     @Override
     public final ChannelPipeline addFirst(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
             checkMultiplicity(handler);
+
+            // name为空自动生成一个，name不为空验证名字是否重复
             name = filterName(name, handler);
 
             newCtx = newContext(group, name, handler);
 
+            // 插入到头处理器上下文的后面
             addFirst0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
             // In this case we add the context to the pipeline and add a task that will call
             // ChannelHandler.handlerAdded(...) once the channel is registered.
-            if (!registered) {
-                newCtx.setAddPending();
-                callHandlerCallbackLater(newCtx, true);
+            if (!registered) {//通道还没添加
+                newCtx.setAddPending();//设置为待添加
+                callHandlerCallbackLater(newCtx, true);//设置后续待添加的回调
                 return this;
             }
 
             EventExecutor executor = newCtx.executor();
             if (!executor.inEventLoop()) {
-                callHandlerAddedInEventLoop(newCtx, executor);
+                callHandlerAddedInEventLoop(newCtx, executor);//添加任务到执行器
                 return this;
             }
         }
-        callHandlerAdded0(newCtx);
+        callHandlerAdded0(newCtx);//触发HandlerAdded回调
         return this;
     }
 
@@ -199,10 +211,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            // 根据处理器是否共享, 判断是否能够添加到处理器链中
             checkMultiplicity(handler);
 
+            // 创建通道处理器上下文
             newCtx = newContext(group, filterName(name, handler), handler);
 
+            // pipeline是由context上下文链表组成的，context里面是处理器，在链表的tail前面插入该上下文
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
@@ -1117,6 +1132,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 设置待处理的处理器回调，当channel还没有注册的时候，处理器先添加到待处理器链表中，
+     *
+     * 管道维护了待处理的处理器链表的头部，当头部为空的时候直接将task设置为头部，
+     *
+     * 当头部不为空的时候追加到最后，下面的代码只有一个赋值的逻辑，
+     *
+     */
     private void callHandlerCallbackLater(AbstractChannelHandlerContext ctx, boolean added) {
         assert !registered;
 

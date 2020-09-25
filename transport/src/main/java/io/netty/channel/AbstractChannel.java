@@ -462,6 +462,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
+            // 当内部类必须要使用到外部类的实例的时候，要这样写，直接使用this表示的是内部类的实例
             AbstractChannel.this.eventLoop = eventLoop;
 
             /**
@@ -510,12 +511,17 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
              *
              */
             if (eventLoop.inEventLoop()) {
+
+                // 如果是eventLoop线程，直接执行注册
                 register0(promise);
             } else {
                 try {
+
+                    // 将注册的流程交由eventLoop线程执行
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
+                            String currentThread = Thread.currentThread().getName();
                             register0(promise);
                         }
                     });
@@ -538,16 +544,22 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
-                //将channel注册到selector上面
+
+                /**
+                 * 将channel注册到selecter上面，返回selectKey
+                 */
                 doRegister();
                 neverRegistered = false;
                 registered = true;
 
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
+
                 pipeline.invokeHandlerAddedIfNeeded();
 
+                // 设置注册成功
                 safeSetSuccess(promise);
+
                 pipeline.fireChannelRegistered();
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.

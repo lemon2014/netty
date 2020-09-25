@@ -269,22 +269,29 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        //主要流程都在这个方法里面
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
             return regFuture;
         }
 
+        //注册已经完成
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
+
+            //注册还没有完成
             // Registration future is almost always fulfilled already, but just in case it's not.
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
+
+            //监听注册完整事件
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
+
                 public void operationComplete(ChannelFuture future) throws Exception {
                     Throwable cause = future.cause();
                     if (cause != null) {
@@ -311,7 +318,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             channel = channelFactory.newChannel();
 
             /**
-             * 设置option和attr、添加bossGroup的handler，最后添加serverBootstrapAcceptor（初始化workGroup的属性）
+             * 设置option和attr、添加pipeline的handler和serverBootstrapAcceptor
              */
             init(channel);
         } catch (Throwable t) {
@@ -325,7 +332,14 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
-        //bossGroup注册通道
+
+        /**
+         * group是获取到bossGroup线程组，register是使用chooser轮询策略从线程组里面获取一个nioEventLoop来执行注册
+         *
+         *
+         *
+         *
+         */
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
@@ -358,7 +372,11 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         channel.eventLoop().execute(new Runnable() {
             @Override
             public void run() {
+
+                String currentThread = Thread.currentThread().getName();
                 if (regFuture.isSuccess()) {
+
+                    //监听绑定完成事件
                     channel.bind(localAddress, promise).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
                 } else {
                     promise.setFailure(regFuture.cause());
