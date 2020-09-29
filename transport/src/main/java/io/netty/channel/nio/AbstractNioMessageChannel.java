@@ -64,6 +64,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             assert eventLoop().inEventLoop();
             final ChannelConfig config = config();
             final ChannelPipeline pipeline = pipeline();
+
+            // 服务端接收的速率
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
             allocHandle.reset(config);
 
@@ -87,7 +89,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                         }
 
                         allocHandle.incMessagesRead(localRead);
-                    } while (allocHandle.continueReading());
+                    } while (allocHandle.continueReading()); //默认情况下一次性读取16个链接
                 } catch (Throwable t) {
                     exception = t;
                 }

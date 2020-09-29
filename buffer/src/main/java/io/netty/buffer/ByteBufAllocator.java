@@ -18,6 +18,8 @@ package io.netty.buffer;
 /**
  * Implementations are responsible to allocate buffers. Implementations of this interface are expected to be
  * thread-safe.
+ *
+ *  实现负责分配缓冲器，这个接口的实现应该是线程安全的
  */
 public interface ByteBufAllocator {
 

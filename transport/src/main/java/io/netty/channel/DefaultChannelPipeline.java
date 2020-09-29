@@ -1264,6 +1264,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 管道的最后一个上下文，并且是最后一个入站处理器，消息传到这里不做处理，如果有资源会释放资源
+     *
+     *
+     *
+     *
+     *
+     */
     // A special catch-all handler that handles both bytes and messages.
     final class TailContext extends AbstractChannelHandlerContext implements ChannelInboundHandler {
 
@@ -1278,7 +1286,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
 
         @Override
-        public void channelRegistered(ChannelHandlerContext ctx) { }
+        public void channelRegistered(ChannelHandlerContext ctx) {
+            System.out.println("###########tailContext监听通道注册事件");
+        }
 
         @Override
         public void channelUnregistered(ChannelHandlerContext ctx) { }
@@ -1306,17 +1316,17 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
-            onUnhandledInboundUserEventTriggered(evt);
+            onUnhandledInboundUserEventTriggered(evt);//有具体实现
         }
 
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-            onUnhandledInboundException(cause);
+            onUnhandledInboundException(cause);//有具体实现
         }
 
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
-            onUnhandledInboundMessage(ctx, msg);
+            onUnhandledInboundMessage(ctx, msg);//有具体实现
         }
 
         @Override
@@ -1325,6 +1335,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * 即是上下文，也是读写处理器，管道的链表的头部
+     */
     final class HeadContext extends AbstractChannelHandlerContext
             implements ChannelOutboundHandler, ChannelInboundHandler {
 

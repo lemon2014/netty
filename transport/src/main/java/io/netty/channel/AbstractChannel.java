@@ -910,6 +910,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
         }
 
+        /**
+         * 会将数据msg封装成直接缓冲区，然后添加到出站缓冲区中
+         */
         @Override
         public final void write(Object msg, ChannelPromise promise) {
             assertEventLoop();
@@ -928,8 +931,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             int size;
             try {
-                msg = filterOutboundMessage(msg);
-                size = pipeline.estimatorHandle().size(msg);
+                msg = filterOutboundMessage(msg);//如果是直接缓冲区就直接返回，否则创建一个直接缓冲区
+                size = pipeline.estimatorHandle().size(msg);//获取缓冲区大小
                 if (size < 0) {
                     size = 0;
                 }
@@ -939,7 +942,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
-            outboundBuffer.addMessage(msg, size, promise);
+            outboundBuffer.addMessage(msg, size, promise);//往出站缓冲区里面添加消息
         }
 
         @Override

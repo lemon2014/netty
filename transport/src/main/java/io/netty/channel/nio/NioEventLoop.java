@@ -184,6 +184,9 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new ChannelException("failed to open a new selector", e);
         }
 
+        /**
+         * 禁用key-set优化
+         */
         if (DISABLE_KEY_SET_OPTIMIZATION) {
             return new SelectorTuple(unwrappedSelector);
         }

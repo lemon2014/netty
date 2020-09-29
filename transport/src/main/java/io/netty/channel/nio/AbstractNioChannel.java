@@ -429,6 +429,8 @@ public abstract class AbstractNioChannel extends AbstractChannel {
      * Returns an off-heap copy of the specified {@link ByteBuf}, and releases the original one.
      * Note that this method does not create an off-heap copy if the allocation / deallocation cost is too high,
      * but just returns the original {@link ByteBuf}..
+     *
+     * 返回指定ByteBuf的堆外副本，并释放原始副本。注意，如果分配/回收成本太高，这个方法不会创建一个堆外副本，而是返回原始的ByteBuf..
      */
     protected final ByteBuf newDirectBuffer(ByteBuf buf) {
         final int readableBytes = buf.readableBytes();
@@ -438,13 +440,16 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         }
 
         final ByteBufAllocator alloc = alloc();
-        if (alloc.isDirectBufferPooled()) {
+        if (alloc.isDirectBufferPooled()) {//池化的直接缓冲区
             ByteBuf directBuf = alloc.directBuffer(readableBytes);
             directBuf.writeBytes(buf, buf.readerIndex(), readableBytes);
             ReferenceCountUtil.safeRelease(buf);
             return directBuf;
         }
 
+        /**
+         * 线程中的直接缓冲区，没明白有什么用??
+         */
         final ByteBuf directBuf = ByteBufUtil.threadLocalDirectBuffer();
         if (directBuf != null) {
             directBuf.writeBytes(buf, buf.readerIndex(), readableBytes);
@@ -452,6 +457,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             return directBuf;
         }
 
+        //分配和释放未汇集的直接缓冲区是非常昂贵的;放弃。
         // Allocating and deallocating an unpooled direct buffer is very expensive; give up.
         return buf;
     }
