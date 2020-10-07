@@ -85,7 +85,10 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
     }
 
     private static InternalThreadLocalMap slowGet() {
+        // 静态的只有一份，每个线程对应一个InternalThreadLocalMap
         ThreadLocal<InternalThreadLocalMap> slowThreadLocalMap = UnpaddedInternalThreadLocalMap.slowThreadLocalMap;
+
+        // 一个线程返回一个InternalThreadLocalMap
         InternalThreadLocalMap ret = slowThreadLocalMap.get();
         if (ret == null) {
             ret = new InternalThreadLocalMap();
@@ -295,12 +298,14 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
      * @return {@code true} if and only if a new thread-local variable has been created
      */
     public boolean setIndexedVariable(int index, Object value) {
-        Object[] lookup = indexedVariables;
-        if (index < lookup.length) {
+        Object[] lookup = indexedVariables;// 什么时候初始化的？？？
+        if (index < lookup.length) { // 容量够的情况下，直接将UNSET修改成value
             Object oldValue = lookup[index];
             lookup[index] = value;
             return oldValue == UNSET;
         } else {
+
+            //扩容
             expandIndexedVariableTableAndSet(index, value);
             return true;
         }

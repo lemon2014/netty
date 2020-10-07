@@ -101,24 +101,24 @@ public class DefaultThreadFactory implements ThreadFactory {
                 Thread.currentThread().getThreadGroup() : System.getSecurityManager().getThreadGroup());
     }
 
-    @Override
-    public Thread newThread(Runnable r) {
-        Thread t = newThread(FastThreadLocalRunnable.wrap(r), prefix + nextId.incrementAndGet());
-        try {
-            if (t.isDaemon() != daemon) {
-                t.setDaemon(daemon);
-            }
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = newThread(FastThreadLocalRunnable.wrap(r), prefix + nextId.incrementAndGet());
+            try {
+                if (t.isDaemon() != daemon) {
+                    t.setDaemon(daemon);
+                }
 
-            if (t.getPriority() != priority) {
-                t.setPriority(priority);
+                if (t.getPriority() != priority) {
+                    t.setPriority(priority);
+                }
+            } catch (Exception ignored) {
+                // Doesn't matter even if failed to set.
             }
-        } catch (Exception ignored) {
-            // Doesn't matter even if failed to set.
+            return t;
         }
-        return t;
-    }
 
-    protected Thread newThread(Runnable r, String name) {
-        return new FastThreadLocalThread(threadGroup, r, name);
-    }
+        protected Thread newThread(Runnable r, String name) {
+            return new FastThreadLocalThread(threadGroup, r, name);
+        }
 }

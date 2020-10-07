@@ -29,6 +29,7 @@ final class FastThreadLocalRunnable implements Runnable {
         try {
             runnable.run();
         } finally {
+            // 将FastThreadLocal里面的数据全部清理掉
             FastThreadLocal.removeAll();
         }
     }
